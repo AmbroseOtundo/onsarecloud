@@ -2,589 +2,742 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Private Cloud Project | Onsare Infra</title>
-<meta name="description" content="Building a multi-tenant private cloud with Proxmox VE, OPNsense, FastAPI, PostgreSQL and Debian. Follow the architecture, implementation and engineering challenges.">
-<meta name="theme-color" content="#f3f1e9">
-
-<style>
-:root {
-    --paper: #f3f1e9;
-    --white: #faf9f5;
-    --ink: #292d28;
-    --muted: #777a70;
-    --line: #d9d7cd;
-    --green: #53664d;
-    --green-light: #e7ebe2;
-    --orange: #a65e3b;
-    --orange-light: #f2e8df;
-    --mono: "SFMono-Regular", Consolas, monospace;
-    --sans: Arial, Helvetica, sans-serif;
-    --serif: Georgia, "Times New Roman", serif;
-    --width: 1080px;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
-    line-height: 1.7;
-    font-size: 14px;
-}
-
-a { color: inherit; text-decoration: none; }
-
-.container {
-    max-width: var(--width);
-    width: calc(100% - 44px);
-    margin: auto;
-}
-
-header {
-    border-bottom: 1px solid var(--line);
-    background: var(--paper);
-}
-
-.nav {
-    min-height: 76px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
-.brand {
-    font-family: var(--serif);
-    font-size: 22px;
-    font-weight: bold;
-    letter-spacing: -.5px;
-}
-
-.brand small {
-    display: block;
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: normal;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-}
-
-.nav-links {
-    display: flex;
-    list-style: none;
-    gap: 24px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.nav-links a:hover, .footer-link:hover {
-    color: var(--green);
-}
-
-.external-link {
-    font-size: 12px;
-    color: var(--green);
-    font-weight: bold;
-}
-
-/* INTRODUCTION */
-
-.hero {
-    padding: 90px 0 65px;
-    border-bottom: 1px solid var(--line);
-}
-
-.kicker, .section-label {
-    color: var(--green);
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-}
-
-.hero h1 {
-    max-width: 800px;
-    margin: 23px 0;
-    font-family: var(--serif);
-    font-size: clamp(42px, 6vw, 65px);
-    font-weight: normal;
-    line-height: 1.12;
-    letter-spacing: -1.8px;
-}
-
-.hero h1 span { color: var(--green); }
-
-.intro {
-    max-width: 720px;
-    font-size: 16px;
-    line-height: 1.9;
-    color: #55594f;
-}
-
-.hero-bottom {
-    margin-top: 35px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 32px;
-    padding-top: 22px;
-    border-top: 1px solid var(--line);
-}
-
-.meta-item small {
-    display: block;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 1px;
-}
-
-.meta-item strong {
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* SECTIONS */
-
-section {
-    padding: 65px 0;
-    border-bottom: 1px solid var(--line);
-}
-
-.section-heading {
-    margin-bottom: 30px;
-}
-
-.section-heading h2 {
-    margin-top: 12px;
-    font-family: var(--serif);
-    font-size: clamp(28px, 4vw, 38px);
-    font-weight: normal;
-    letter-spacing: -.8px;
-}
-
-.section-heading p {
-    max-width: 700px;
-    margin-top: 11px;
-    color: var(--muted);
-    font-size: 13px;
-}
-
-/* OVERVIEW */
-
-.overview {
-    display: grid;
-    grid-template-columns: 1.5fr .7fr;
-    gap: 55px;
-}
-
-.overview p {
-    color: #55594f;
-    font-size: 14px;
-    margin-bottom: 14px;
-}
-
-.project-facts {
-    border-left: 2px solid var(--green);
-    padding-left: 22px;
-}
-
-.fact {
-    margin-bottom: 22px;
-}
-
-.fact small {
-    display: block;
-    font-family: var(--mono);
-    color: var(--muted);
-    font-size: 9px;
-    text-transform: uppercase;
-}
-
-.fact strong {
-    font-family: var(--serif);
-    font-size: 21px;
-    font-weight: normal;
-}
-
-/* ARCHITECTURE */
-
-.architecture-intro {
-    margin-bottom: 25px;
-}
-
-.arch-layer {
-    padding: 23px 0;
-    border-top: 1px solid var(--line);
-    display: grid;
-    grid-template-columns: 190px 1fr;
-    gap: 25px;
-}
-
-.layer-name {
-    font-family: var(--mono);
-    color: var(--green);
-    font-size: 11px;
-}
-
-.layer-name small {
-    display: block;
-    margin-top: 6px;
-    color: var(--muted);
-    font-size: 9px;
-}
-
-.layer-content h3 {
-    font-size: 14px;
-    margin-bottom: 7px;
-}
-
-.layer-content p {
-    color: var(--muted);
-    font-size: 12px;
-}
-
-.arch-flow {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 13px;
-}
-
-.node {
-    border: 1px solid var(--line);
-    background: var(--white);
-    padding: 10px 13px;
-    font-size: 11px;
-}
-
-.node strong { display: block; }
-
-.node small {
-    font-size: 9px;
-    color: var(--muted);
-}
-
-.flow-arrow {
-    color: var(--green);
-    font-size: 15px;
-}
-
-/* TECHNOLOGY */
-
-.tech-list {
-    border-top: 1px solid var(--line);
-}
-
-.tech-row {
-    display: grid;
-    grid-template-columns: 190px 1fr;
-    gap: 25px;
-    padding: 17px 0;
-    border-bottom: 1px solid var(--line);
-}
-
-.tech-row span {
-    color: var(--muted);
-    font-size: 11px;
-}
-
-.tech-row strong {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.tech-row p {
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 3px;
-}
-
-/* NETWORK TABLES */
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-}
-
-.data-table th {
-    padding: 12px 10px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: normal;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--line);
-}
-
-.data-table td {
-    padding: 14px 10px;
-    font-size: 12px;
-    border-bottom: 1px solid var(--line);
-}
-
-.data-table tr:last-child td {
-    border-bottom: none;
-}
-
-.data-table td:first-child {
-    font-weight: bold;
-}
-
-.code {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--green);
-}
-
-.network-note {
-    margin-top: 20px;
-    padding: 17px;
-    background: var(--green-light);
-    border-left: 3px solid var(--green);
-    font-size: 12px;
-    color: #4c5847;
-}
-
-/* CUSTOMER NETWORKS */
-
-.customer-block {
-    margin-top: 30px;
-}
-
-.customer-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--line);
-}
-
-.customer-heading h3 {
-    font-family: var(--serif);
-    font-size: 22px;
-    font-weight: normal;
-}
-
-.status {
-    color: var(--green);
-    font-family: var(--mono);
-    font-size: 9px;
-    text-transform: uppercase;
-}
-
-.customer-details {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    padding: 18px 0;
-}
-
-.customer-detail small {
-    display: block;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 9px;
-}
-
-.customer-detail strong {
-    font-size: 12px;
-    font-family: var(--mono);
-    font-weight: normal;
-}
-
-/* RESULTS */
-
-.result-table td:last-child {
-    color: var(--green);
-    font-weight: bold;
-}
-
-.callout {
-    margin-top: 22px;
-    padding: 17px 20px;
-    border-left: 3px solid var(--orange);
-    background: var(--orange-light);
-    color: #744e39;
-    font-size: 12px;
-}
-
-/* CHALLENGES */
-
-.challenge-list {
-    border-top: 1px solid var(--line);
-}
-
-.challenge-row {
-    display: grid;
-    grid-template-columns: 35px 190px 1fr;
-    gap: 18px;
-    padding: 19px 0;
-    border-bottom: 1px solid var(--line);
-}
-
-.challenge-number {
-    color: var(--orange);
-    font-family: var(--mono);
-    font-size: 11px;
-}
-
-.challenge-row strong {
-    font-size: 13px;
-}
-
-.challenge-row p {
-    color: var(--muted);
-    font-size: 12px;
-}
-
-/* ROADMAP */
-
-.roadmap {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-}
-
-.roadmap-group h3 {
-    font-family: var(--serif);
-    font-size: 21px;
-    font-weight: normal;
-    padding-bottom: 13px;
-    border-bottom: 1px solid var(--line);
-}
-
-.roadmap-group ul {
-    list-style: none;
-    margin-top: 15px;
-}
-
-.roadmap-group li {
-    padding: 9px 0 9px 18px;
-    position: relative;
-    color: #55594f;
-    font-size: 12px;
-}
-
-.roadmap-group li::before {
-    content: "—";
-    position: absolute;
-    left: 0;
-    color: var(--green);
-}
-
-/* FOOTER */
-
-footer {
-    padding: 35px 0;
-    background: #e8e6dd;
-}
-
-.footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
-.footer-content p {
-    color: var(--muted);
-    font-size: 11px;
-}
-
-.footer-link {
-    color: var(--green);
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.disclaimer {
-    margin-top: 22px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 10px;
-}
-
-/* RESPONSIVE */
-
-@media(max-width: 760px) {
-    .nav-links { display: none; }
-
-    .overview { grid-template-columns: 1fr; gap: 30px; }
-
-    .project-facts {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-
-    .arch-layer, .tech-row {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .customer-details {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .challenge-row {
-        grid-template-columns: 28px 1fr;
-    }
-
-    .challenge-row p {
-        grid-column: 2;
-    }
-
-    .data-table {
-        min-width: 600px;
-    }
-
-    .table-scroll { overflow-x: auto; }
-}
-
-@media(max-width: 520px) {
-    .container { width: calc(100% - 30px); }
-
-    .hero { padding: 60px 0 45px; }
-
-    .hero h1 { font-size: 42px; }
-
-    section { padding: 49px 0; }
-
-    .roadmap { grid-template-columns: 1fr; gap: 30px; }
-
-    .project-facts { grid-template-columns: 1fr 1fr; }
-
-    .footer-content {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Private Cloud Engineering | Onsare Infra</title>
+
+    <meta name="description"
+          content="Engineering a multi-tenant private cloud using Proxmox VE, OPNsense, FastAPI, PostgreSQL and Debian. Explore the architecture, network isolation, implementation and engineering challenges.">
+
+    <meta name="theme-color" content="#f3f1e9">
+
+    <meta property="og:title"
+          content="Building a Multi-Tenant Private Cloud | Onsare Infra">
+    <meta property="og:description"
+          content="A hands-on cloud engineering project covering virtualization, VLAN segmentation, automation and infrastructure security.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cloud.onsareinfra.com">
+
+    <style>
+        :root {
+            --paper: #f3f1e9;
+            --white: #faf9f5;
+            --ink: #292d28;
+            --muted: #777a70;
+            --line: #d9d7cd;
+            --green: #53664d;
+            --green-light: #e7ebe2;
+            --orange: #a65e3b;
+            --orange-light: #f2e8df;
+            --red: #a34b42;
+            --mono: "SFMono-Regular", Consolas, monospace;
+            --sans: Arial, Helvetica, sans-serif;
+            --serif: Georgia, "Times New Roman", serif;
+            --width: 1080px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 90px;
+        }
+
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--sans);
+            font-size: 14px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(var(--width), calc(100% - 44px));
+            margin: auto;
+        }
+
+        /* NAVIGATION */
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(243, 241, 233, .96);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .nav {
+            min-height: 72px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .brand {
+            font-family: var(--serif);
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: -.5px;
+        }
+
+        .brand small {
+            display: block;
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: normal;
+            letter-spacing: 1.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 23px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .nav-links a:hover,
+        .external-link:hover,
+        .footer-link:hover {
+            color: var(--green);
+        }
+
+        .external-link {
+            color: var(--green);
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* HERO */
+
+        .hero {
+            padding: 90px 0 65px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .kicker,
+        .section-label {
+            color: var(--green);
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            max-width: 800px;
+            margin: 22px 0;
+            font-family: var(--serif);
+            font-size: clamp(42px, 6vw, 65px);
+            font-weight: normal;
+            line-height: 1.12;
+            letter-spacing: -1.8px;
+        }
+
+        .hero h1 span {
+            color: var(--green);
+        }
+
+        .intro {
+            max-width: 730px;
+            color: #55594f;
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 27px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 11px 17px;
+            border: 1px solid var(--green);
+            font-size: 12px;
+            font-weight: bold;
+            transition: .2s;
+        }
+
+        .button-primary {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .button-primary:hover {
+            background: #3e5039;
+        }
+
+        .button-secondary {
+            color: var(--green);
+        }
+
+        .button-secondary:hover {
+            background: var(--green-light);
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 34px;
+            margin-top: 38px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+        }
+
+        .meta-item small {
+            display: block;
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 1px;
+        }
+
+        .meta-item strong {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* SECTIONS */
+
+        section {
+            padding: 66px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .section-heading {
+            margin-bottom: 30px;
+        }
+
+        .section-heading h2 {
+            margin-top: 12px;
+            font-family: var(--serif);
+            font-size: clamp(28px, 4vw, 39px);
+            font-weight: normal;
+            line-height: 1.2;
+            letter-spacing: -.8px;
+        }
+
+        .section-heading p {
+            max-width: 720px;
+            margin-top: 11px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* OVERVIEW */
+
+        .overview {
+            display: grid;
+            grid-template-columns: 1.5fr .7fr;
+            gap: 55px;
+        }
+
+        .overview-copy p {
+            margin-bottom: 14px;
+            color: #55594f;
+            font-size: 14px;
+        }
+
+        .project-facts {
+            padding-left: 22px;
+            border-left: 2px solid var(--green);
+        }
+
+        .fact {
+            margin-bottom: 20px;
+        }
+
+        .fact small {
+            display: block;
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        .fact strong {
+            font-family: var(--serif);
+            font-size: 21px;
+            font-weight: normal;
+        }
+
+        /* ARCHITECTURE */
+
+        .arch-layer {
+            display: grid;
+            grid-template-columns: 190px 1fr;
+            gap: 25px;
+            padding: 25px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .layer-name {
+            color: var(--green);
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        .layer-name small {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 9px;
+        }
+
+        .layer-content h3 {
+            margin-bottom: 7px;
+            font-size: 14px;
+        }
+
+        .layer-content p {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 15px;
+        }
+
+        .node {
+            padding: 11px 13px;
+            border: 1px solid var(--line);
+            background: var(--white);
+            font-size: 11px;
+        }
+
+        .node strong {
+            display: block;
+        }
+
+        .node small {
+            color: var(--muted);
+            font-size: 9px;
+        }
+
+        .flow-arrow {
+            color: var(--green);
+            font-size: 15px;
+        }
+
+        /* TECHNOLOGY */
+
+        .tech-list {
+            border-top: 1px solid var(--line);
+        }
+
+        .tech-row {
+            display: grid;
+            grid-template-columns: 190px 1fr;
+            gap: 25px;
+            padding: 17px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .tech-row > span {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .tech-row strong {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .tech-row p {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* NETWORK */
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .data-table th {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: normal;
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            padding: 13px 10px;
+            border-bottom: 1px solid var(--line);
+            font-size: 12px;
+        }
+
+        .data-table td:first-child {
+            font-weight: bold;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .code {
+            color: var(--green);
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        .network-note {
+            margin-top: 20px;
+            padding: 17px;
+            border-left: 3px solid var(--green);
+            background: var(--green-light);
+            color: #4c5847;
+            font-size: 12px;
+        }
+
+        .customer-block {
+            margin-top: 32px;
+        }
+
+        .customer-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .customer-heading h3 {
+            font-family: var(--serif);
+            font-size: 22px;
+            font-weight: normal;
+        }
+
+        .status {
+            color: var(--green);
+            font-family: var(--mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .customer-details {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 18px 0;
+        }
+
+        .customer-detail small {
+            display: block;
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 9px;
+        }
+
+        .customer-detail strong {
+            display: block;
+            margin-top: 5px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: normal;
+        }
+
+        /* IMPLEMENTATION STATUS */
+
+        .progress-list {
+            border-top: 1px solid var(--line);
+        }
+
+        .progress-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 18px;
+            padding: 17px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .progress-item strong {
+            font-size: 13px;
+        }
+
+        .progress-item p {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 9px;
+            font-family: var(--mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .complete {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .working {
+            background: var(--orange-light);
+            color: var(--orange);
+        }
+
+        .planned {
+            background: #e9e7df;
+            color: #66685f;
+        }
+
+        /* TEST RESULTS */
+
+        .result-table td:last-child {
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        .result-table .pending {
+            color: var(--orange);
+        }
+
+        .callout {
+            margin-top: 22px;
+            padding: 17px 20px;
+            border-left: 3px solid var(--orange);
+            background: var(--orange-light);
+            color: #744e39;
+            font-size: 12px;
+        }
+
+        /* ENGINEERING CHALLENGES */
+
+        .challenge-list {
+            border-top: 1px solid var(--line);
+        }
+
+        .challenge-row {
+            display: grid;
+            grid-template-columns: 35px 190px 1fr;
+            gap: 18px;
+            padding: 19px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .challenge-number {
+            color: var(--orange);
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        .challenge-row strong {
+            font-size: 13px;
+        }
+
+        .challenge-row p {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* ROADMAP */
+
+        .roadmap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .roadmap-group h3 {
+            padding-bottom: 13px;
+            border-bottom: 1px solid var(--line);
+            font-family: var(--serif);
+            font-size: 21px;
+            font-weight: normal;
+        }
+
+        .roadmap-group ul {
+            margin-top: 14px;
+            padding-left: 18px;
+            color: #55594f;
+            font-size: 12px;
+        }
+
+        .roadmap-group li {
+            padding: 5px 0;
+        }
+
+        /* FOOTER */
+
+        footer {
+            padding: 36px 0;
+            background: #e8e6dd;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        footer p {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .footer-link {
+            color: var(--green);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .disclaimer {
+            margin-top: 23px;
+            padding-top: 17px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 760px) {
+            .nav-links {
+                display: none;
+            }
+
+            .overview {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .project-facts {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+
+            .arch-layer,
+            .tech-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .customer-details {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .challenge-row {
+                grid-template-columns: 28px 1fr;
+                gap: 12px;
+            }
+
+            .challenge-row p {
+                grid-column: 2;
+            }
+
+            .data-table {
+                min-width: 600px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .container {
+                width: calc(100% - 30px);
+            }
+
+            .hero {
+                padding: 60px 0 45px;
+            }
+
+            .hero h1 {
+                font-size: 42px;
+            }
+
+            section {
+                padding: 49px 0;
+            }
+
+            .roadmap {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .project-facts {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .progress-item {
+                grid-template-columns: 1fr;
+                gap: 9px;
+            }
+
+            .footer-content {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .customer-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
+<header class="site-header">
     <div class="container nav">
+
         <a href="https://onsareinfra.com" class="brand">
             Onsare Infra
             <small>INFRASTRUCTURE ENGINEERING / PROJECT LOG</small>
         </a>
 
-        <nav>
+        <nav aria-label="Main navigation">
             <ul class="nav-links">
                 <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#technology">Technology</a></li>
                 <li><a href="#network">Networking</a></li>
-                <li><a href="#results">Test results</a></li>
+                <li><a href="#validation">Testing</a></li>
                 <li><a href="#roadmap">Roadmap</a></li>
             </ul>
         </nav>
@@ -592,731 +745,895 @@ footer {
         <a href="https://onsareinfra.com" class="external-link">
             Main website ↗
         </a>
+
     </div>
 </header>
 
 <main>
 
-<!-- INTRO -->
+    <!-- HERO -->
 
-<section class="hero">
-    <div class="container">
+    <section class="hero">
+        <div class="container">
 
-        <div class="kicker">
-            Independent cloud engineering project / 2026
-        </div>
-
-        <h1>
-            Building a private cloud,
-            <span>one layer at a time.</span>
-        </h1>
-
-        <p class="intro">
-            A self-hosted, multi-tenant Infrastructure as a Service
-            platform built from the ground up. Combining virtualization,
-            network engineering, infrastructure automation, identity
-            management and backend development.
-        </p>
-
-        <div class="hero-bottom">
-            <div class="meta-item">
-                <small>PROJECT STATUS</small>
-                <strong>Prototype · Active development</strong>
+            <div class="kicker">
+                Independent cloud engineering project / 2026
             </div>
 
-            <div class="meta-item">
-                <small>LAST UPDATED</small>
-                <strong>25 November 2026</strong>
-            </div>
+            <h1>
+                Building a private cloud,
+                <span>one layer at a time.</span>
+            </h1>
 
-            <div class="meta-item">
-                <small>CURRENT MILESTONE</small>
-                <strong>Multi-tenant network isolation</strong>
-            </div>
-        </div>
-
-    </div>
-</section>
-
-
-<!-- OVERVIEW -->
-
-<section id="overview">
-    <div class="container">
-
-        <div class="section-heading">
-            <div class="section-label">01 / Project overview</div>
-            <h2>From a hypervisor to a cloud platform.</h2>
-        </div>
-
-        <div class="overview">
-
-            <div>
-                <p>
-                    The objective is to build a platform where customers
-                    can register, create projects, provision Linux
-                    virtual machines and manage their resources through
-                    a centralised cloud control plane.
-                </p>
-
-                <p>
-                    The backend communicates with Proxmox through its
-                    API. PostgreSQL maintains customer accounts,
-                    memberships, projects, quotas, VM records and
-                    audit events.
-                </p>
-
-                <p>
-                    OPNsense provides routing, network segmentation,
-                    DHCP, DNS, outbound NAT and firewall enforcement.
-                    The longer-term goal is to automate the complete
-                    provisioning workflow rather than manually
-                    configuring each customer network.
-                </p>
-            </div>
-
-            <div class="project-facts">
-                <div class="fact">
-                    <small>Hypervisor</small>
-                    <strong>Proxmox VE 9.2.2</strong>
-                </div>
-
-                <div class="fact">
-                    <small>Firewall</small>
-                    <strong>OPNsense 26.7</strong>
-                </div>
-
-                <div class="fact">
-                    <small>Backend</small>
-                    <strong>Python / FastAPI</strong>
-                </div>
-
-                <div class="fact">
-                    <small>Database</small>
-                    <strong>PostgreSQL 17</strong>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-</section>
-
-
-<!-- ARCHITECTURE -->
-
-<section id="architecture">
-    <div class="container">
-
-        <div class="section-heading">
-            <div class="section-label">02 / System architecture</div>
-            <h2>Three layers working together.</h2>
-            <p>
-                A control plane for orchestration, a hypervisor for
-                compute and an independently segmented network layer.
+            <p class="intro">
+                A self-hosted, multi-tenant Infrastructure as a Service
+                platform built from the ground up. Combining virtualization,
+                network engineering, infrastructure automation, customer
+                identity and backend development.
             </p>
-        </div>
 
-        <div class="arch-layer">
-            <div class="layer-name">
-                01 / CONTROL PLANE
-                <small>Application and resource management</small>
+            <div class="hero-actions">
+                <a class="button button-primary" href="#architecture">
+                    Explore architecture
+                </a>
+                <a class="button button-secondary" href="#validation">
+                    View test results
+                </a>
             </div>
 
-            <div class="layer-content">
-                <h3>FastAPI + PostgreSQL</h3>
-                <p>
-                    Customer authentication, JWT, RBAC, account
-                    memberships, project quotas, VM provisioning,
-                    lifecycle operations and audit logging.
-                </p>
+            <div class="hero-meta">
+                <div class="meta-item">
+                    <small>PROJECT STATUS</small>
+                    <strong>Prototype · Active development</strong>
+                </div>
 
-                <div class="arch-flow">
-                    <div class="node">
-                        <strong>Customer identity</strong>
-                        <small>JWT / Argon2id</small>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="node">
-                        <strong>FastAPI</strong>
-                        <small>Cloud controller</small>
-                    </div>
-                    <span class="flow-arrow">↔</span>
-                    <div class="node">
-                        <strong>PostgreSQL</strong>
-                        <small>Resource records</small>
-                    </div>
+                <div class="meta-item">
+                    <small>LAST UPDATED</small>
+                    <strong>25 November 2026</strong>
+                </div>
+
+                <div class="meta-item">
+                    <small>CURRENT MILESTONE</small>
+                    <strong>Two customer networks isolated</strong>
                 </div>
             </div>
-        </div>
 
-        <div class="arch-layer">
-            <div class="layer-name">
-                02 / COMPUTE
-                <small>Virtualization and provisioning</small>
+        </div>
+    </section>
+
+
+    <!-- OVERVIEW -->
+
+    <section id="overview">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">01 / Project overview</div>
+                <h2>From a hypervisor to a cloud platform.</h2>
             </div>
 
-            <div class="layer-content">
-                <h3>Proxmox VE</h3>
-                <p>
-                    Proxmox API integration, Debian 13 Cloud-Init
-                    template, VM cloning, QEMU Guest Agent and
-                    resource lifecycle management.
-                </p>
+            <div class="overview">
 
-                <div class="arch-flow">
-                    <div class="node">
-                        <strong>FastAPI</strong>
-                        <small>Proxmox API client</small>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="node">
-                        <strong>Proxmox VE</strong>
+                <div class="overview-copy">
+                    <p>
+                        The objective is to build a platform where customers
+                        can register, create projects, provision Linux virtual
+                        machines and manage resources through a centralised
+                        cloud control plane.
+                    </p>
+
+                    <p>
+                        The backend communicates with Proxmox through its
+                        API. PostgreSQL maintains customer accounts,
+                        memberships, projects, quotas, VM records and
+                        audit events.
+                    </p>
+
+                    <p>
+                        OPNsense provides routing, network segmentation,
+                        DHCP, DNS, outbound NAT and firewall enforcement.
+                        The next engineering objective is to automate
+                        customer network allocation instead of manually
+                        configuring every VLAN.
+                    </p>
+                </div>
+
+                <div class="project-facts">
+                    <div class="fact">
                         <small>Hypervisor</small>
+                        <strong>Proxmox VE 9.2.2</strong>
                     </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="node">
-                        <strong>Debian VMs</strong>
-                        <small>Cloud-Init</small>
+
+                    <div class="fact">
+                        <small>Network security</small>
+                        <strong>OPNsense 26.7</strong>
+                    </div>
+
+                    <div class="fact">
+                        <small>Control plane</small>
+                        <strong>Python / FastAPI</strong>
+                    </div>
+
+                    <div class="fact">
+                        <small>Database</small>
+                        <strong>PostgreSQL 17</strong>
                     </div>
                 </div>
+
             </div>
+
         </div>
+    </section>
 
-        <div class="arch-layer">
-            <div class="layer-name">
-                03 / NETWORK
-                <small>Routing, segmentation and security</small>
-            </div>
 
-            <div class="layer-content">
-                <h3>OPNsense + 802.1Q</h3>
+    <!-- ARCHITECTURE -->
+
+    <section id="architecture">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">02 / System architecture</div>
+                <h2>Three layers working together.</h2>
                 <p>
-                    VLAN-aware Proxmox bridges, OPNsense virtual
-                    interfaces, Dnsmasq DHCP, Unbound DNS,
-                    DNS-over-TLS, outbound NAT and stateful
-                    firewall rules.
+                    A control plane for orchestration, a hypervisor for
+                    compute, and an independently segmented network layer.
                 </p>
+            </div>
 
-                <div class="arch-flow">
-                    <div class="node">
-                        <strong>Customer VM</strong>
-                        <small>Tagged traffic</small>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="node">
-                        <strong>vmbr2</strong>
-                        <small>VLAN trunk</small>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="node">
-                        <strong>OPNsense</strong>
-                        <small>Gateway and firewall</small>
-                    </div>
-                    <span class="flow-arrow">→</span>
-                    <div class="node">
-                        <strong>WAN</strong>
-                        <small>Internet</small>
+            <div class="arch-layer">
+
+                <div class="layer-name">
+                    01 / CONTROL PLANE
+                    <small>Application and resource management</small>
+                </div>
+
+                <div class="layer-content">
+                    <h3>FastAPI + PostgreSQL</h3>
+                    <p>
+                        Customer authentication, JWT, RBAC, account
+                        memberships, project quotas, VM provisioning,
+                        lifecycle operations and audit logging.
+                    </p>
+
+                    <div class="arch-flow">
+                        <div class="node">
+                            <strong>Customer identity</strong>
+                            <small>JWT / Argon2id</small>
+                        </div>
+                        <span class="flow-arrow">→</span>
+                        <div class="node">
+                            <strong>FastAPI</strong>
+                            <small>Cloud controller</small>
+                        </div>
+                        <span class="flow-arrow">↔</span>
+                        <div class="node">
+                            <strong>PostgreSQL</strong>
+                            <small>Resource records</small>
+                        </div>
                     </div>
                 </div>
+
             </div>
+
+            <div class="arch-layer">
+
+                <div class="layer-name">
+                    02 / COMPUTE
+                    <small>Virtualization and provisioning</small>
+                </div>
+
+                <div class="layer-content">
+                    <h3>Proxmox VE</h3>
+                    <p>
+                        Proxmox API integration, Debian 13 Cloud-Init
+                        template, VM cloning, QEMU Guest Agent and
+                        resource lifecycle management.
+                    </p>
+
+                    <div class="arch-flow">
+                        <div class="node">
+                            <strong>FastAPI</strong>
+                            <small>Proxmox API client</small>
+                        </div>
+                        <span class="flow-arrow">→</span>
+                        <div class="node">
+                            <strong>Proxmox VE</strong>
+                            <small>Hypervisor</small>
+                        </div>
+                        <span class="flow-arrow">→</span>
+                        <div class="node">
+                            <strong>Debian VMs</strong>
+                            <small>Cloud-Init</small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="arch-layer">
+
+                <div class="layer-name">
+                    03 / NETWORK
+                    <small>Routing, segmentation and security</small>
+                </div>
+
+                <div class="layer-content">
+                    <h3>OPNsense + 802.1Q</h3>
+                    <p>
+                        VLAN-aware Proxmox bridges, OPNsense virtual
+                        interfaces, Dnsmasq DHCP, Unbound DNS,
+                        DNS-over-TLS, outbound NAT and stateful firewall rules.
+                    </p>
+
+                    <div class="arch-flow">
+                        <div class="node">
+                            <strong>Customer VM</strong>
+                            <small>Tagged traffic</small>
+                        </div>
+                        <span class="flow-arrow">→</span>
+                        <div class="node">
+                            <strong>vmbr2</strong>
+                            <small>VLAN trunk</small>
+                        </div>
+                        <span class="flow-arrow">→</span>
+                        <div class="node">
+                            <strong>OPNsense</strong>
+                            <small>Gateway and firewall</small>
+                        </div>
+                        <span class="flow-arrow">→</span>
+                        <div class="node">
+                            <strong>WAN</strong>
+                            <small>Internet</small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
-
-    </div>
-</section>
+    </section>
 
 
-<!-- TECHNOLOGY -->
+    <!-- TECHNOLOGY -->
 
-<section id="technology">
-    <div class="container">
+    <section id="technology">
+        <div class="container">
 
-        <div class="section-heading">
-            <div class="section-label">03 / Technology stack</div>
-            <h2>Tools and implementation.</h2>
+            <div class="section-heading">
+                <div class="section-label">03 / Technology stack</div>
+                <h2>Tools and implementation.</h2>
+                <p>
+                    Infrastructure, operating systems, backend development,
+                    identity, networking and DNS.
+                </p>
+            </div>
+
+            <div class="tech-list">
+
+                <div class="tech-row">
+                    <span>Virtualization</span>
+                    <div>
+                        <strong>Proxmox VE 9.2.2</strong>
+                        <p>Hypervisor, VM lifecycle, API integration and virtual bridges.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Network security</span>
+                    <div>
+                        <strong>OPNsense 26.7</strong>
+                        <p>Virtual firewall, routing, NAT, DHCP and VLAN gateways.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Guest operating system</span>
+                    <div>
+                        <strong>Debian 13</strong>
+                        <p>Reusable Cloud-Init image and customer workloads.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Automation</span>
+                    <div>
+                        <strong>Cloud-Init / QEMU Guest Agent</strong>
+                        <p>Initial guest configuration and VM information retrieval.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Backend</span>
+                    <div>
+                        <strong>Python / FastAPI</strong>
+                        <p>REST API, customer access control and infrastructure orchestration.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Persistence</span>
+                    <div>
+                        <strong>PostgreSQL 17</strong>
+                        <p>Customer accounts, projects, memberships, quotas and VM records.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Identity and security</span>
+                    <div>
+                        <strong>JWT / Argon2id / RBAC</strong>
+                        <p>Customer authentication, password hashing and role enforcement.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Network services</span>
+                    <div>
+                        <strong>Dnsmasq / Unbound / DNS-over-TLS</strong>
+                        <p>DHCP allocation and DNS resolution using Cloudflare upstream.</p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Network technology</span>
+                    <div>
+                        <strong>802.1Q VLANs</strong>
+                        <p>Tagged virtual network segmentation and tenant separation.</p>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
+    </section>
 
-        <div class="tech-list">
 
-            <div class="tech-row">
-                <span>Virtualization</span>
-                <div>
-                    <strong>Proxmox VE 9.2.2</strong>
-                    <p>Hypervisor, VM lifecycle, API integration and virtual bridges.</p>
-                </div>
+    <!-- NETWORK ENGINEERING -->
+
+    <section id="network">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">04 / Network engineering</div>
+                <h2>Separating management from workloads.</h2>
+                <p>
+                    Three Proxmox bridges separate the management plane,
+                    existing internal services and customer traffic.
+                    Customer traffic is routed and filtered by OPNsense.
+                </p>
             </div>
 
-            <div class="tech-row">
-                <span>Network security</span>
-                <div>
-                    <strong>OPNsense 26.7</strong>
-                    <p>Virtual firewall, routing, NAT, DHCP and VLAN gateways.</p>
-                </div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Bridge</th>
+                            <th>Network</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>vmbr0</td>
+                            <td class="code">192.168.100.0/24</td>
+                            <td>Management and OPNsense WAN</td>
+                        </tr>
+                        <tr>
+                            <td>vmbr1</td>
+                            <td class="code">10.0.0.0/24</td>
+                            <td>Internal infrastructure and Cloud Controller</td>
+                        </tr>
+                        <tr>
+                            <td>vmbr2</td>
+                            <td class="code">VLAN 1001–1099</td>
+                            <td>Customer workload trunk</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="tech-row">
-                <span>Guest operating system</span>
-                <div>
-                    <strong>Debian 13</strong>
-                    <p>Reusable Cloud-Init image and customer workloads.</p>
-                </div>
+            <div class="network-note">
+                The Cloud Controller is on the internal network at
+                <strong>10.0.0.135</strong>, using a DHCP reservation.
+                Customer workloads use tagged networks behind OPNsense.
+                The Proxmox management and controller interfaces are
+                not intended to be accessible from customer VLANs.
             </div>
 
-            <div class="tech-row">
-                <span>Automation</span>
-                <div>
-                    <strong>Cloud-Init / QEMU Guest Agent</strong>
-                    <p>Initial guest configuration and VM information retrieval.</p>
+            <div class="customer-block">
+
+                <div class="customer-heading">
+                    <h3>Customer A / VLAN 1001</h3>
+                    <span class="status">● Operational</span>
                 </div>
+
+                <div class="customer-details">
+                    <div class="customer-detail">
+                        <small>Subnet</small>
+                        <strong>10.10.1.0/24</strong>
+                    </div>
+                    <div class="customer-detail">
+                        <small>Gateway</small>
+                        <strong>10.10.1.1</strong>
+                    </div>
+                    <div class="customer-detail">
+                        <small>DHCP pool</small>
+                        <strong>10.10.1.100–199</strong>
+                    </div>
+                    <div class="customer-detail">
+                        <small>Test VM 109</small>
+                        <strong>10.10.1.117</strong>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="tech-row">
-                <span>Backend</span>
-                <div>
-                    <strong>Python / FastAPI</strong>
-                    <p>REST API, customer access control and infrastructure orchestration.</p>
+            <div class="customer-block">
+
+                <div class="customer-heading">
+                    <h3>Customer B / VLAN 1002</h3>
+                    <span class="status">● Operational</span>
                 </div>
+
+                <div class="customer-details">
+                    <div class="customer-detail">
+                        <small>Subnet</small>
+                        <strong>10.10.2.0/24</strong>
+                    </div>
+                    <div class="customer-detail">
+                        <small>Gateway</small>
+                        <strong>10.10.2.1</strong>
+                    </div>
+                    <div class="customer-detail">
+                        <small>DHCP pool</small>
+                        <strong>10.10.2.100–200</strong>
+                    </div>
+                    <div class="customer-detail">
+                        <small>Test VM 110</small>
+                        <strong>10.10.2.164</strong>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="tech-row">
-                <span>Persistence</span>
-                <div>
-                    <strong>PostgreSQL 17</strong>
-                    <p>Customer accounts, projects, memberships, quotas and VM records.</p>
-                </div>
-            </div>
-
-            <div class="tech-row">
-                <span>Identity and security</span>
-                <div>
-                    <strong>JWT / Argon2id / RBAC</strong>
-                    <p>Customer authentication, password hashing and role enforcement.</p>
-                </div>
-            </div>
-
-            <div class="tech-row">
-                <span>Network services</span>
-                <div>
-                    <strong>Dnsmasq / Unbound / DNS-over-TLS</strong>
-                    <p>DHCP allocation and DNS resolution using Cloudflare upstream.</p>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-</section>
-
-
-<!-- NETWORKING -->
-
-<section id="network">
-    <div class="container">
-
-        <div class="section-heading">
-            <div class="section-label">04 / Network engineering</div>
-            <h2>Separating management from workloads.</h2>
-            <p>
-                Three Proxmox bridges separate the management plane,
-                existing internal services and customer traffic.
+            <p style="margin-top:12px;color:var(--muted);font-size:11px;">
+                Both customer VLANs share the VLAN-aware Proxmox bridge
+                and OPNsense trunk, but use separate gateways, DHCP
+                scopes and firewall policies.
             </p>
-        </div>
-
-        <div class="table-scroll">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Bridge</th>
-                        <th>Network</th>
-                        <th>Purpose</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>vmbr0</td>
-                        <td class="code">192.168.100.0/24</td>
-                        <td>Management and OPNsense WAN</td>
-                    </tr>
-                    <tr>
-                        <td>vmbr1</td>
-                        <td class="code">10.0.0.0/24</td>
-                        <td>Internal infrastructure and controller</td>
-                    </tr>
-                    <tr>
-                        <td>vmbr2</td>
-                        <td class="code">VLAN 1001–1099</td>
-                        <td>Customer workload trunk</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="network-note">
-            The Cloud Controller remains on the internal network at
-            <strong>10.0.0.135</strong>. Customer workloads are separated
-            on tagged networks behind OPNsense. The hypervisor and
-            controller management interfaces are not exposed to customers.
-        </div>
-
-        <!-- CUSTOMER A -->
-
-        <div class="customer-block">
-
-            <div class="customer-heading">
-                <h3>Customer A / VLAN 1001</h3>
-                <span class="status">● Operational</span>
-            </div>
-
-            <div class="customer-details">
-                <div class="customer-detail">
-                    <small>Subnet</small>
-                    <strong>10.10.1.0/24</strong>
-                </div>
-                <div class="customer-detail">
-                    <small>Gateway</small>
-                    <strong>10.10.1.1</strong>
-                </div>
-                <div class="customer-detail">
-                    <small>DHCP pool</small>
-                    <strong>.100 – .199</strong>
-                </div>
-                <div class="customer-detail">
-                    <small>Test VM 109</small>
-                    <strong>10.10.1.117</strong>
-                </div>
-            </div>
 
         </div>
-
-        <!-- CUSTOMER B -->
-
-        <div class="customer-block">
-
-            <div class="customer-heading">
-                <h3>Customer B / VLAN 1002</h3>
-                <span class="status">● Operational</span>
-            </div>
-
-            <div class="customer-details">
-                <div class="customer-detail">
-                    <small>Subnet</small>
-                    <strong>10.10.2.0/24</strong>
-                </div>
-                <div class="customer-detail">
-                    <small>Gateway</small>
-                    <strong>10.10.2.1</strong>
-                </div>
-                <div class="customer-detail">
-                    <small>DHCP pool</small>
-                    <strong>.100 – .200</strong>
-                </div>
-                <div class="customer-detail">
-                    <small>Test VM 110</small>
-                    <strong>10.10.2.164</strong>
-                </div>
-            </div>
-
-        </div>
-
-        <p class="architecture-caption">
-            Both customer networks use the same VLAN-aware bridge and
-            OPNsense trunk, but have separate Layer 3 gateways,
-            DHCP scopes and firewall policies.
-        </p>
-
-    </div>
-</section>
+    </section>
 
 
-<!-- RESULTS -->
+    <!-- IMPLEMENTATION STATUS -->
 
-<section id="results">
-    <div class="container">
+    <section id="progress">
+        <div class="container">
 
-        <div class="section-heading">
-            <div class="section-label">05 / Validation and testing</div>
-            <h2>Two customer networks. Independently tested.</h2>
-            <p>
-                The two Debian test VMs were deployed independently
-                and tested for DHCP, DNS, internet connectivity
-                and tenant isolation.
-            </p>
-        </div>
-
-        <div class="table-scroll">
-            <table class="data-table result-table">
-
-                <thead>
-                    <tr>
-                        <th>Validation</th>
-                        <th>Customer A</th>
-                        <th>Customer B</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr>
-                        <td>DHCP allocation</td>
-                        <td>10.10.1.117</td>
-                        <td>10.10.2.164</td>
-                    </tr>
-
-                    <tr>
-                        <td>Gateway</td>
-                        <td>10.10.1.1</td>
-                        <td>10.10.2.1</td>
-                    </tr>
-
-                    <tr>
-                        <td>Internet connectivity</td>
-                        <td>Passed</td>
-                        <td>Passed</td>
-                    </tr>
-
-                    <tr>
-                        <td>DNS resolution</td>
-                        <td>NOERROR</td>
-                        <td>NOERROR</td>
-                    </tr>
-
-                    <tr>
-                        <td>External HTTPS</td>
-                        <td>HTTP 200</td>
-                        <td>HTTP 200</td>
-                    </tr>
-
-                    <tr>
-                        <td>Cross-tenant traffic</td>
-                        <td>Blocked</td>
-                        <td>Blocked</td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-
-        <h3 style="margin-top:35px;font-size:17px;">
-            Firewall evidence
-        </h3>
-
-        <div class="tech-list" style="margin-top:14px;">
-            <div class="tech-row">
-                <span>Customer A → B</span>
-                <div>
-                    <strong>10.10.1.117 → 10.10.2.164</strong>
-                    <p>ICMP attempts blocked and logged under BLOCK Customer A Private Networks.</p>
-                </div>
-            </div>
-
-            <div class="tech-row">
-                <span>Customer B → A</span>
-                <div>
-                    <strong>10.10.2.164 → 10.10.1.117</strong>
-                    <p>ICMP attempts blocked and logged under BLOCK Customer B Private Networks.</p>
-                </div>
-            </div>
-
-            <div class="tech-row">
-                <span>Customer → Controller</span>
-                <div>
-                    <strong>10.10.1.117 → 10.0.0.135:8000</strong>
-                    <p>Blocked by the private-network policy and confirmed in OPNsense logs.</p>
-                </div>
-            </div>
-
-            <div class="tech-row">
-                <span>Customer → Hypervisor</span>
-                <div>
-                    <strong>10.10.1.117 → 192.168.100.32:8006</strong>
-                    <p>Blocked by the private-network policy and confirmed in OPNsense logs.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="callout">
-            <strong>Testing boundary:</strong> These results validate
-            the two pilot customer networks and the tested access paths.
-            Broader security testing, additional protocols, IPv6 policy
-            and automated network lifecycle management remain outstanding.
-        </div>
-
-    </div>
-</section>
-
-
-<!-- ENGINEERING CHALLENGES -->
-
-<section id="challenges">
-    <div class="container">
-
-        <div class="section-heading">
-            <div class="section-label">06 / Engineering notes</div>
-            <h2>Problems encountered along the way.</h2>
-            <p>
-                Practical troubleshooting has been a major part
-                of this build. These are some of the issues
-                investigated and addressed.
-            </p>
-        </div>
-
-        <div class="challenge-list">
-
-            <div class="challenge-row">
-                <span class="challenge-number">01</span>
-                <strong>VLAN trunking</strong>
+            <div class="section-heading">
+                <div class="section-label">05 / Implementation status</div>
+                <h2>Where the project stands.</h2>
                 <p>
-                    Configured VLAN-aware Proxmox bridges and VirtIO
-                    trunk adapters to carry tagged customer traffic
-                    into OPNsense without changing existing networks.
+                    Progress is tracked by implemented and tested
+                    capabilities, not estimated completion percentages.
                 </p>
             </div>
 
-            <div class="challenge-row">
-                <span class="challenge-number">02</span>
-                <strong>Outbound NAT</strong>
-                <p>
-                    The original LAN NAT rule did not cover the
-                    new subnets. Added separate hybrid outbound
-                    NAT rules for each customer VLAN.
-                </p>
-            </div>
+            <div class="progress-list">
 
-            <div class="challenge-row">
-                <span class="challenge-number">03</span>
-                <strong>Firewall ordering</strong>
-                <p>
-                    Distinguished floating rules from interface
-                    rules and placed DNS exceptions before private
-                    network blocks and internet pass rules.
-                </p>
-            </div>
+                <div class="progress-item">
+                    <div>
+                        <strong>Proxmox infrastructure and virtual bridges</strong>
+                        <p>Hypervisor deployment, management, internal and customer bridges.</p>
+                    </div>
+                    <span class="badge complete">Completed</span>
+                </div>
 
-            <div class="challenge-row">
-                <span class="challenge-number">04</span>
-                <strong>DNS resolution</strong>
-                <p>
-                    Investigated SERVFAIL responses and upstream
-                    DNS transport behaviour. Configured Unbound
-                    to forward public DNS through Cloudflare
-                    DNS-over-TLS.
-                </p>
-            </div>
+                <div class="progress-item">
+                    <div>
+                        <strong>Debian 13 Cloud-Init template</strong>
+                        <p>Reusable template with QEMU Guest Agent.</p>
+                    </div>
+                    <span class="badge complete">Completed</span>
+                </div>
 
-            <div class="challenge-row">
-                <span class="challenge-number">05</span>
-                <strong>Controller IP drift</strong>
-                <p>
-                    The Cloud Controller received a different
-                    DHCP address after the scope changed.
-                    Restored its expected address with a
-                    MAC-based DHCP reservation.
-                </p>
-            </div>
+                <div class="progress-item">
+                    <div>
+                        <strong>FastAPI cloud controller and PostgreSQL</strong>
+                        <p>Proxmox API integration, resource management and persistence.</p>
+                    </div>
+                    <span class="badge complete">Implemented</span>
+                </div>
 
-            <div class="challenge-row">
-                <span class="challenge-number">06</span>
-                <strong>Storage capacity</strong>
-                <p>
-                    Proxmox reported LVM thin-pool over-provisioning
-                    warnings during cloning. Physical pool usage
-                    and future VM allocations require monitoring.
-                </p>
-            </div>
+                <div class="progress-item">
+                    <div>
+                        <strong>Customer authentication and RBAC</strong>
+                        <p>JWT authentication, roles, memberships and project access controls.</p>
+                    </div>
+                    <span class="badge complete">Tested</span>
+                </div>
 
-            <div class="challenge-row">
-                <span class="challenge-number">07</span>
-                <strong>Remote administration</strong>
-                <p>
-                    Encountered intermittent WebGUI connectivity
-                    through Tailscale. Stabilising management
-                    access remains part of the hardening work.
-                </p>
-            </div>
+                <div class="progress-item">
+                    <div>
+                        <strong>VM provisioning and lifecycle management</strong>
+                        <p>Clone, deploy, start, stop, reboot and delete operations.</p>
+                    </div>
+                    <span class="badge complete">Tested</span>
+                </div>
 
-        </div>
+                <div class="progress-item">
+                    <div>
+                        <strong>Two customer VLANs and DHCP scopes</strong>
+                        <p>VLAN 1001 and VLAN 1002 deployed with independent gateways and address pools.</p>
+                    </div>
+                    <span class="badge complete">Tested</span>
+                </div>
 
-    </div>
-</section>
+                <div class="progress-item">
+                    <div>
+                        <strong>Outbound NAT and internet access</strong>
+                        <p>Separate hybrid NAT rules and external connectivity for both test networks.</p>
+                    </div>
+                    <span class="badge complete">Tested</span>
+                </div>
 
+                <div class="progress-item">
+                    <div>
+                        <strong>Unbound DNS and DNS-over-TLS</strong>
+                        <p>Cloudflare upstream configured and public DNS resolution verified.</p>
+                    </div>
+                    <span class="badge complete">Tested</span>
+                </div>
 
-<!-- ROADMAP -->
+                <div class="progress-item">
+                    <div>
+                        <strong>Cross-tenant network isolation</strong>
+                        <p>Both directions tested, with ICMP blocks confirmed in OPNsense firewall logs.</p>
+                    </div>
+                    <span class="badge complete">Verified</span>
+                </div>
 
-<section id="roadmap">
-    <div class="container">
+                <div class="progress-item">
+                    <div>
+                        <strong>Customer A management-plane restrictions</strong>
+                        <p>Access to Proxmox management and Cloud Controller blocked and logged.</p>
+                    </div>
+                    <span class="badge complete">Verified</span>
+                </div>
 
-        <div class="section-heading">
-            <div class="section-label">07 / Development roadmap</div>
-            <h2>What comes next.</h2>
-            <p>
-                The next phase is moving from manually configured
-                customer networks towards automated infrastructure
-                provisioning.
-            </p>
-        </div>
+                <div class="progress-item">
+                    <div>
+                        <strong>Automated tenant network allocation</strong>
+                        <p>Network database model and integration with VM provisioning.</p>
+                    </div>
+                    <span class="badge working">Next phase</span>
+                </div>
 
-        <div class="roadmap">
+                <div class="progress-item">
+                    <div>
+                        <strong>Customer self-service portal</strong>
+                        <p>Frontend for account, project, VM and team management.</p>
+                    </div>
+                    <span class="badge planned">Planned</span>
+                </div>
 
-            <div class="roadmap-group">
-                <h3>Automation and networking</h3>
-                <ul>
-                    <li>Build a tenant network allocation model in PostgreSQL.</li>
-                    <li>Allocate unique VLAN IDs, subnets and gateways.</li>
-                    <li>Integrate VLAN selection into FastAPI VM provisioning.</li>
-                    <li>Automate DHCP, NAT and firewall configuration.</li>
-                    <li>Implement network cleanup and reconciliation.</li>
-                </ul>
-            </div>
-
-            <div class="roadmap-group">
-                <h3>Customer experience</h3>
-                <ul>
-                    <li>Build the self-service customer portal.</li>
-                    <li>Customer project and resource dashboards.</li>
-                    <li>VM image catalogue and SSH key management.</li>
-                    <li>VM resizing, snapshots and restoration.</li>
-                </ul>
-            </div>
-
-            <div class="roadmap-group">
-                <h3>Monitoring and reliability</h3>
-                <ul>
-                    <li>Prometheus and Grafana integration.</li>
-                    <li>Host, VM and network monitoring.</li>
-                    <li>Centralised logs and alerting.</li>
-                    <li>Backup and disaster recovery testing.</li>
-                </ul>
-            </div>
-
-            <div class="roadmap-group">
-                <h3>Security and deployment</h3>
-                <ul>
-                    <li>Least-privilege Proxmox API permissions.</li>
-                    <li>TLS certificate validation and secrets management.</li>
-                    <li>Login rate limiting and registration controls.</li>
-                    <li>Secure public ingress with Cloudflare Tunnel.</li>
-                    <li>End-to-end security and recovery testing.</li>
-                </ul>
             </div>
 
         </div>
+    </section>
 
-    </div>
-</section>
+
+    <!-- VALIDATION -->
+
+    <section id="validation">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">06 / Technical validation</div>
+                <h2>Two customers. Independently tested.</h2>
+                <p>
+                    Debian 13 test VMs were deployed into separate
+                    VLANs to validate address allocation, DNS,
+                    internet connectivity and tenant separation.
+                </p>
+            </div>
+
+            <div class="table-scroll">
+                <table class="data-table result-table">
+
+                    <thead>
+                        <tr>
+                            <th>Test</th>
+                            <th>Customer A</th>
+                            <th>Customer B</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>DHCP allocation</td>
+                            <td>10.10.1.117/24</td>
+                            <td>10.10.2.164/24</td>
+                        </tr>
+
+                        <tr>
+                            <td>Gateway</td>
+                            <td>10.10.1.1</td>
+                            <td>10.10.2.1</td>
+                        </tr>
+
+                        <tr>
+                            <td>Internet by IP</td>
+                            <td>Passed</td>
+                            <td>Passed</td>
+                        </tr>
+
+                        <tr>
+                            <td>DNS resolution</td>
+                            <td>NOERROR</td>
+                            <td>NOERROR</td>
+                        </tr>
+
+                        <tr>
+                            <td>External HTTPS</td>
+                            <td>HTTP 200</td>
+                            <td>HTTP 200</td>
+                        </tr>
+
+                        <tr>
+                            <td>Customer A → B</td>
+                            <td colspan="2">Blocked and logged</td>
+                        </tr>
+
+                        <tr>
+                            <td>Customer B → A</td>
+                            <td colspan="2">Blocked and logged</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top:32px;font-size:16px;">
+                Firewall evidence
+            </h3>
+
+            <div class="tech-list" style="margin-top:13px;">
+
+                <div class="tech-row">
+                    <span>Customer A → B</span>
+                    <div>
+                        <strong>10.10.1.117 → 10.10.2.164</strong>
+                        <p>
+                            ICMP attempts blocked and logged under
+                            BLOCK Customer A Private Networks.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Customer B → A</span>
+                    <div>
+                        <strong>10.10.2.164 → 10.10.1.117</strong>
+                        <p>
+                            ICMP attempts blocked and logged under
+                            BLOCK Customer B Private Networks.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Customer → Controller</span>
+                    <div>
+                        <strong>10.10.1.117 → 10.0.0.135:8000</strong>
+                        <p>
+                            Blocked by the private-network policy
+                            and confirmed in OPNsense logs.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tech-row">
+                    <span>Customer → Hypervisor</span>
+                    <div>
+                        <strong>10.10.1.117 → 192.168.100.32:8006</strong>
+                        <p>
+                            Blocked by the private-network policy
+                            and confirmed in OPNsense logs.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="callout">
+                <strong>Testing boundary:</strong> The results confirm
+                the tested IPv4 paths and the two pilot customer networks.
+                Broader protocol testing, IPv6 policy, automated network
+                lifecycle management and production security testing
+                remain outstanding.
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ENGINEERING CHALLENGES -->
+
+    <section id="challenges">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">07 / Engineering challenges</div>
+                <h2>Problems encountered along the way.</h2>
+                <p>
+                    Building the platform has involved practical
+                    troubleshooting across virtualization, networking,
+                    storage, DNS and security.
+                </p>
+            </div>
+
+            <div class="challenge-list">
+
+                <div class="challenge-row">
+                    <span class="challenge-number">01</span>
+                    <strong>VLAN trunking</strong>
+                    <p>
+                        Configured VLAN-aware Proxmox bridges and
+                        VirtIO trunk adapters to carry tagged customer
+                        traffic into OPNsense without changing existing
+                        networks. Both customer VLANs now work.
+                    </p>
+                </div>
+
+                <div class="challenge-row">
+                    <span class="challenge-number">02</span>
+                    <strong>Outbound NAT</strong>
+                    <p>
+                        The original LAN NAT rule did not cover the
+                        new customer subnets. Added separate hybrid
+                        outbound NAT rules for VLAN 1001 and VLAN 1002.
+                    </p>
+                </div>
+
+                <div class="challenge-row">
+                    <span class="challenge-number">03</span>
+                    <strong>Firewall rule ordering</strong>
+                    <p>
+                        Worked through floating versus interface rules
+                        and the correct ordering of DNS exceptions,
+                        private-network blocks and internet pass rules.
+                    </p>
+                </div>
+
+                <div class="challenge-row">
+                    <span class="challenge-number">04</span>
+                    <strong>DNS resolution</strong>
+                    <p>
+                        Investigated SERVFAIL responses and upstream
+                        DNS transport behaviour. Configured Unbound
+                        with Cloudflare DNS-over-TLS.
+                    </p>
+                </div>
+
+                <div class="challenge-row">
+                    <span class="challenge-number">05</span>
+                    <strong>Controller IP change</strong>
+                    <p>
+                        A DHCP scope change caused the Cloud Controller
+                        to receive a different address. Restored its
+                        expected address using a MAC-based DHCP reservation.
+                    </p>
+                </div>
+
+                <div class="challenge-row">
+                    <span class="challenge-number">06</span>
+                    <strong>LVM thin provisioning</strong>
+                    <p>
+                        Proxmox reported thin-pool over-provisioning
+                        warnings during VM cloning. Physical pool capacity
+                        and future VM allocations require monitoring.
+                    </p>
+                </div>
+
+                <div class="challenge-row">
+                    <span class="challenge-number">07</span>
+                    <strong>Remote administration</strong>
+                    <p>
+                        Encountered intermittent OPNsense WebGUI
+                        connectivity through Tailscale. Management
+                        access stabilisation remains outstanding.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ROADMAP -->
+
+    <section id="roadmap">
+        <div class="container">
+
+            <div class="section-heading">
+                <div class="section-label">08 / Development roadmap</div>
+                <h2>What comes next.</h2>
+                <p>
+                    Moving from manually configured customer networks
+                    towards an automated, monitored and securely
+                    accessible private cloud.
+                </p>
+            </div>
+
+            <div class="roadmap">
+
+                <div class="roadmap-group">
+                    <h3>Network and automation</h3>
+                    <ul>
+                        <li>Build a tenant network allocation model in PostgreSQL.</li>
+                        <li>Allocate unique VLAN IDs, subnets and gateways.</li>
+                        <li>Integrate VLAN selection into FastAPI VM provisioning.</li>
+                        <li>Automate DHCP, NAT and firewall configuration.</li>
+                        <li>Implement network cleanup and reconciliation.</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-group">
+                    <h3>Customer experience</h3>
+                    <ul>
+                        <li>Build the customer self-service portal.</li>
+                        <li>Customer project and resource dashboards.</li>
+                        <li>VM image catalogue and SSH key management.</li>
+                        <li>VM resizing, snapshots and restoration.</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-group">
+                    <h3>Monitoring and reliability</h3>
+                    <ul>
+                        <li>Prometheus and Grafana integration.</li>
+                        <li>Host, VM and network monitoring.</li>
+                        <li>Centralised logging and alerting.</li>
+                        <li>Backup and disaster recovery testing.</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-group">
+                    <h3>Security and deployment</h3>
+                    <ul>
+                        <li>Least-privilege Proxmox API permissions.</li>
+                        <li>TLS certificate validation and secrets management.</li>
+                        <li>Login rate limiting and registration controls.</li>
+                        <li>Secure public ingress with Cloudflare Tunnel.</li>
+                        <li>End-to-end security and recovery testing.</li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
 
 </main>
 
+
+<!-- FOOTER -->
 
 <footer>
     <div class="container">
 
         <div class="footer-content">
+
             <div>
-                <div class="brand">
+                <a href="https://onsareinfra.com" class="brand">
                     Onsare Infra
                     <small>CLOUD ENGINEERING PROJECT</small>
-                </div>
+                </a>
 
-                <p style="margin-top:9px;">
+                <p>
                     Building and documenting infrastructure in practice.
                 </p>
             </div>
@@ -1324,6 +1641,7 @@ footer {
             <a class="footer-link" href="https://onsareinfra.com">
                 Visit main portfolio ↗
             </a>
+
         </div>
 
         <div class="disclaimer">
